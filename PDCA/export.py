@@ -250,7 +250,6 @@ def main():
     messagebox.showinfo("Completed!","Import der Daten erfolgreich")
 
 if __name__ == "__main__":
-    if DEMO is False:
         if len(sys.argv) != 2:
             messagebox.showerror("Error","Fehler bei der Ermittlung des Commands")
             sys.exit()
@@ -260,6 +259,3 @@ if __name__ == "__main__":
             else:
                 mpp_file_path = sys.argv[1]
                 init(mpp_file_path)
-    else:
-        messagebox.showinfo("Info","Demo Modus ist aktiv")
-        init(r"C:\Users\npawelka\Desktop\Beispiel.mpp")
