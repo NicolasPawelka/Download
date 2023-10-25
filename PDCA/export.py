@@ -11,9 +11,9 @@ import re
 import sys
 import json
 import os
-from pyxll import xl_func, xl_macro
+import inspect
 ############################
-DEMO = False
+DEMO = True
 TASK_NAME = "Arbeitsergebnis"
 START_DATE = None
 END_DATE = "Zieldatum"
@@ -167,12 +167,39 @@ def init(project_file_path):
     global PROJECT_FILE_PATH
     global ID
     
-    EXCEL_FILE_PATH = choose_excel_file()
-    SELECTED_SHEET = choose_excel_sheet(EXCEL_FILE_PATH)
+    calling_function = inspect.currentframe().f_back.f_code.co_name
+    if calling_function != "update":
+        EXCEL_FILE_PATH = choose_excel_file()
+        SELECTED_SHEET = choose_excel_sheet(EXCEL_FILE_PATH)
+        PROJECT = win32.Dispatch("MSProject.Application")
+        PROJECT_FILE_PATH = project_file_path
+        PROJECT.FileOpen(project_file_path)
+        script_directory = os.path.dirname(os.path.abspath(__file__))
+        json_filename = os.path.join(script_directory,"connected_values.json") 
     
-    PROJECT = win32.Dispatch("MSProject.Application")
-    PROJECT_FILE_PATH = project_file_path
-    PROJECT.FileOpen(project_file_path)
+    
+        if not os.path.exists(json_filename):
+            data = {}
+        else:
+            with open(json_filename,"r") as json_file:
+                data = json.load(json_file)
+            
+    
+        new_key = EXCEL_FILE_PATH
+        new_value = PROJECT_FILE_PATH
+        data[new_key] = new_value
+    
+        with open(json_filename, "w") as json_file:
+            json.dump(data, json_file, indent=4)
+    else:
+         with open("connected_values.json", "r") as json_file:
+            data = json.load(json_file)
+         print(data)
+         EXCEL_FILE_PATH = project_file_path
+         PROJECT_FILE_PATH = data[EXCEL_FILE_PATH]
+         PROJECT = win32.Dispatch("MSProject.Application")
+         PROJECT.FileOpen(PROJECT_FILE_PATH)
+         
     
     workbook = load_workbook(EXCEL_FILE_PATH)
     worksheet = workbook[SELECTED_SHEET[0]]
@@ -193,37 +220,15 @@ def init(project_file_path):
     if last_value is not None:
         ID.append(last_value)
     
-    script_directory = os.path.dirname(os.path.abspath(__file__))
-    json_filename = os.path.join(script_directory,"connected_values.json") 
-    
-    
-    if not os.path.exists(json_filename):
-        data = {}
-    else:
-        with open(json_filename,"r") as json_file:
-            data = json.load(json_file)
-            
-    
-    new_key = EXCEL_FILE_PATH
-    new_value = PROJECT_FILE_PATH
-    data[new_key] = new_value
-    
-    with open(json_filename, "w") as json_file:
-        json.dump(data, json_file, indent=4)
-    
-    
-
-               
-        
     main()
 
 def update():
-    messagebox.showinfo("Hallo")
     global DATA_FRAME
     global EXCEL_FILE_PATH
     global PROJECT
     global ACTIVE_PROJECT
     global TASKS
+    init("C:/Users/npawelka/Desktop/PDCA/ETO.EEVACTUATOR.Entw.016.xlsm")
     
 
     if not DATA_FRAME or not EXCEL_FILE_PATH or not PROJECT or not ACTIVE_PROJECT:
@@ -332,4 +337,4 @@ if __name__ == "__main__":
                 mpp_file_path = sys.argv[1]
                 init(mpp_file_path)
     else:
-        init(r"C:\Users\npawelka\Desktop\Beispiel.mpp")
+        update()
