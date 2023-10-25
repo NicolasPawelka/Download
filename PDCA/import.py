@@ -13,6 +13,7 @@ import sys
 import os
 from pyxll import xl_func, xl_macro
 ##########################
+DEMO = False
 EXCEL = None
 PROJECT = None
 EXCEL_FILE_PATH = None
@@ -216,4 +217,12 @@ def main():
         
         
 if __name__ == "__main__":
+    if DEMO is False:
+        if len(sys.argv) != 2:
+            messagebox.showerror("Error","Fehler bei der Ermittlung des Commands")
+            sys.exit()
+        else:
+            excel_path = sys.argv[1]
+            init(excel_path)
+        
     init(r"C:\Users\npawelka\Desktop\PDCA\ETO.EEVACTUATOR.Entw.016.xlsm")
