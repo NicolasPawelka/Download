@@ -12,7 +12,7 @@ import sys
 import os
 from pyxll import xl_func, xl_macro
 ############################
-DEMO = True
+DEMO = False
 TASK_NAME = "Arbeitsergebnis"
 START_DATE = None
 END_DATE = "Zieldatum"
@@ -35,6 +35,12 @@ def is_summary(current_depth, saved_depth, next_depth):
     elif current_depth > saved_depth and current_depth == next_depth:
         return True
     return False
+
+def find_existing_task_by_name(name, TASKS):
+    for task in TASKS:
+        if task.Name == name:
+            return task
+    return None
 
 
 
@@ -191,7 +197,50 @@ def init(project_file_path):
     main()
 
 def update():
-    messagebox.showinfo("Yeah","Worked")
+    messagebox.showinfo("Hallo")
+    global DATA_FRAME
+    global EXCEL_FILE_PATH
+    global PROJECT
+    global ACTIVE_PROJECT
+    global TASKS
+
+    if not DATA_FRAME or not EXCEL_FILE_PATH or not PROJECT or not ACTIVE_PROJECT:
+        messagebox.showerror("Error", "Data is not properly initialized. Please run 'init' first.")
+        return
+
+    Task_Name_index = find_TASK_NAME(DATA_FRAME, TASK_NAME)
+    ID_index = find_ID(DATA_FRAME)
+    START_index = find_START(DATA_FRAME)
+    BUDGET_index = find_BUDGET(DATA_FRAME)
+    RESOURCE_index = find_RESOURCE(DATA_FRAME)
+
+    if Task_Name_index == -1 or ID_index == -1 or START_index == -1 or BUDGET_index == -1 or RESOURCE_index == -1:
+        messagebox.showerror("Error", "Could not find required columns in the Excel data.")
+        return
+
+    current_index = 1
+    for _, row in DATA_FRAME.iterrows():
+        current_name = row.iloc[Task_Name_index]
+        current_id = row.iloc[ID_index]
+        current_budget = row.iloc[BUDGET_index]
+        if current_name is None or current_name == TASK_NAME:
+            continue
+        else:
+            current_depth = calculate_depth(current_id)
+            date = row.iloc[START_index]
+            if date is None:
+                date = datetime.now().strftime("%d.%m.%Y")
+            task = find_existing_task_by_name(current_name, TASKS)
+            if task:
+                task.Start = date
+                task.OutlineLevel = current_depth
+                task.Cost = extract_budget(current_budget)
+            else:
+                messagebox.showwarning("Warning", f"Task '{current_name}' not found in the existing project. Skipping.")
+            current_index += 1
+
+    messagebox.showinfo("Update Complete", "Existing tasks have been updated.")
+
 
 def main():
     global ID
@@ -250,6 +299,7 @@ def main():
     messagebox.showinfo("Completed!","Import der Daten erfolgreich")
 
 if __name__ == "__main__":
+    if DEMO is False:
         if len(sys.argv) != 2:
             messagebox.showerror("Error","Fehler bei der Ermittlung des Commands")
             sys.exit()
@@ -259,3 +309,5 @@ if __name__ == "__main__":
             else:
                 mpp_file_path = sys.argv[1]
                 init(mpp_file_path)
+    else:
+        init(r"C:\Users\npawelka\Desktop\Beispiel.mpp")
