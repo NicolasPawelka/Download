@@ -9,6 +9,7 @@ import math
 from openpyxl import load_workbook
 import re
 import sys
+import json
 import os
 from pyxll import xl_func, xl_macro
 ############################
@@ -191,6 +192,26 @@ def init(project_file_path):
 
     if last_value is not None:
         ID.append(last_value)
+    
+    script_directory = os.path.dirname(os.path.abspath(__file__))
+    json_filename = os.path.join(script_directory,"connected_values.json") 
+    
+    
+    if not os.path.exists(json_filename):
+        data = {}
+    else:
+        with open(json_filename,"r") as json_file:
+            data = json.load(json_file)
+            
+    
+    new_key = EXCEL_FILE_PATH
+    new_value = PROJECT_FILE_PATH
+    data[new_key] = new_value
+    
+    with open(json_filename, "w") as json_file:
+        json.dump(data, json_file, indent=4)
+    
+    
 
                
         
@@ -203,6 +224,7 @@ def update():
     global PROJECT
     global ACTIVE_PROJECT
     global TASKS
+    
 
     if not DATA_FRAME or not EXCEL_FILE_PATH or not PROJECT or not ACTIVE_PROJECT:
         messagebox.showerror("Error", "Data is not properly initialized. Please run 'init' first.")
