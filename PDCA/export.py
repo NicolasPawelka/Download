@@ -186,17 +186,25 @@ def init(project_file_path):
             
     
         new_key = EXCEL_FILE_PATH
-        new_value = PROJECT_FILE_PATH
+        new_value = {
+            "project_file_path" : PROJECT_FILE_PATH,
+            "selected_sheet" : SELECTED_SHEET[0] if SELECTED_SHEET else None
+        }
         data[new_key] = new_value
     
         with open(json_filename, "w") as json_file:
             json.dump(data, json_file, indent=4)
+            
+        main()
     else:
          with open("connected_values.json", "r") as json_file:
             data = json.load(json_file)
-         print(data)
          EXCEL_FILE_PATH = project_file_path
-         PROJECT_FILE_PATH = data[EXCEL_FILE_PATH]
+         connection_data = data.get(EXCEL_FILE_PATH)
+         if connection_data:
+             PROJECT_FILE_PATH = connection_data["project_file_path"]
+             print(connection_data["selected_sheet"])
+             SELECTED_SHEET.append(connection_data["selected_sheet"])
          PROJECT = win32.Dispatch("MSProject.Application")
          PROJECT.FileOpen(PROJECT_FILE_PATH)
          
@@ -220,7 +228,7 @@ def init(project_file_path):
     if last_value is not None:
         ID.append(last_value)
     
-    main()
+    update()
 
 def update():
     global DATA_FRAME
