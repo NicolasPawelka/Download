@@ -168,6 +168,7 @@ def init(project_file_path):
     global ID
     
     calling_function = inspect.currentframe().f_back.f_code.co_name
+    
     if calling_function != "update":
         EXCEL_FILE_PATH = choose_excel_file()
         SELECTED_SHEET = choose_excel_sheet(EXCEL_FILE_PATH)
@@ -186,25 +187,16 @@ def init(project_file_path):
             
     
         new_key = EXCEL_FILE_PATH
-        new_value = {
-            "project_file_path" : PROJECT_FILE_PATH,
-            "selected_sheet" : SELECTED_SHEET[0] if SELECTED_SHEET else None
-        }
+        new_value = PROJECT_FILE_PATH
         data[new_key] = new_value
     
         with open(json_filename, "w") as json_file:
             json.dump(data, json_file, indent=4)
-            
-        main()
     else:
          with open("connected_values.json", "r") as json_file:
             data = json.load(json_file)
          EXCEL_FILE_PATH = project_file_path
-         connection_data = data.get(EXCEL_FILE_PATH)
-         if connection_data:
-             PROJECT_FILE_PATH = connection_data["project_file_path"]
-             print(connection_data["selected_sheet"])
-             SELECTED_SHEET.append(connection_data["selected_sheet"])
+         PROJECT_FILE_PATH = data[EXCEL_FILE_PATH]
          PROJECT = win32.Dispatch("MSProject.Application")
          PROJECT.FileOpen(PROJECT_FILE_PATH)
          
@@ -228,7 +220,7 @@ def init(project_file_path):
     if last_value is not None:
         ID.append(last_value)
     
-    update()
+    main()
 
 def update():
     global DATA_FRAME
@@ -236,12 +228,10 @@ def update():
     global PROJECT
     global ACTIVE_PROJECT
     global TASKS
-    init("C:/Users/npawelka/Desktop/PDCA/ETO.EEVACTUATOR.Entw.016.xlsm")
     
 
     if not DATA_FRAME or not EXCEL_FILE_PATH or not PROJECT or not ACTIVE_PROJECT:
-        messagebox.showerror("Error", "Data is not properly initialized. Please run 'init' first.")
-        return
+        init("C:/Users/npawelka/Desktop/PDCA/ETO.EEVACTUATOR.Entw.016.xlsm")
 
     Task_Name_index = find_TASK_NAME(DATA_FRAME, TASK_NAME)
     ID_index = find_ID(DATA_FRAME)
@@ -323,7 +313,6 @@ def main():
                     WAS_SUMMARY = True
                     saved_depth = current_depth
                 else:
-              
                         add_Task(TASKS,current_name,current_depth,date,extract_budget(current_budget),task_number)
                         task_number += 1
                         saved_depth = current_depth
