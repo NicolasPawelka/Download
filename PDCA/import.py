@@ -224,5 +224,5 @@ if __name__ == "__main__":
         else:
             excel_path = sys.argv[1]
             init(excel_path)
-    else:  
-        init(r"C:\Users\npawelka\Desktop\PDCA\ETO.EEVACTUATOR.Entw.016.xlsm")
+        
+    init(r"C:\Users\npawelka\Desktop\PDCA\ETO.EEVACTUATOR.Entw.016.xlsm")

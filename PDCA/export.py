@@ -155,6 +155,15 @@ def add_Summary(TASKS, name,depth,date,budget):
 def add_resource(list, resources):
     for resource_name in list:
         resources.Add(resource_name)
+        
+def extract_file_name(text):
+    match = re.search(r'[^\\/]+$', text)
+    
+    if match:
+        filename = match.group(0)
+        return filename
+    else:
+        messagebox.showerror("Error", "Name der verbundenen Datei konnte nicht ermittelt werden")
 
   
 def init(project_file_path):
@@ -186,8 +195,8 @@ def init(project_file_path):
                 data = json.load(json_file)
             
     
-        new_key = EXCEL_FILE_PATH
-        new_value = PROJECT_FILE_PATH
+        new_key = extract_file_name(PROJECT_FILE_PATH)
+        new_value = [extract_file_name(EXCEL_FILE_PATH), SELECTED_SHEET[0]]
         data[new_key] = new_value
     
         with open(json_filename, "w") as json_file:
@@ -334,4 +343,4 @@ if __name__ == "__main__":
                 mpp_file_path = sys.argv[1]
                 init(mpp_file_path)
     else:
-        update()
+        init("C:/Users/npawelka/Desktop/Beispiel.mpp")
