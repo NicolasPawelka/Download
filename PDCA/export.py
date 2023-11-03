@@ -12,6 +12,7 @@ import sys
 import json
 import os
 import inspect
+import subprocess
 ############################
 DEMO = True
 TASK_NAME = "Arbeitsergebnis"
@@ -21,7 +22,7 @@ DATA_FRAME = None
 EXCEL_FILE_PATH = None
 PROJECT = None
 ACTIVE_PROJECT = None
-SELECTED_SHEET = []
+SELECTED_SHEET = None
 TASKS = None
 PROJECT_FILE_PATH = None
 WAS_SUMMARY = False
@@ -103,14 +104,11 @@ def choose_excel_sheet(file_path):
                                          initialvalue=0, minvalue=0, maxvalue=len(options)-1)
         
         choice += 1
-        selected_sheets = []
         if choice == 0:
-            selected_sheets = sheet_names
+           return None
         elif 1 <= choice < len(options):
-            selected_sheets = [sheet_names[choice-1]]
-            
-        return selected_sheets
-    return 0
+            return sheet_names[choice-1]
+    return None
 
     
 def calculate_depth(text):
@@ -165,7 +163,17 @@ def extract_file_name(text):
     else:
         messagebox.showerror("Error", "Name der verbundenen Datei konnte nicht ermittelt werden")
 
-  
+def find_file_path(name):
+    command = f'cmd /c "cd ../.. & cd Desktop & dir /s /b "{name}"'
+    
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,shell=True,text=True)
+    stdout,stderr = process.communicate()
+    
+    return stdout     
+
+def convert_to_raw_string(input):
+   return r'{}'.format(input[:-1])
+
 def init(project_file_path):
     global DATA_FRAME
     global EXCEL_FILE_PATH
@@ -204,14 +212,16 @@ def init(project_file_path):
     else:
          with open("connected_values.json", "r") as json_file:
             data = json.load(json_file)
-         EXCEL_FILE_PATH = project_file_path
-         PROJECT_FILE_PATH = data[EXCEL_FILE_PATH]
+         key = extract_file_name(project_file_path)
+         EXCEL_FILE_PATH = find_file_path(data[key][0])
+         EXCEL_FILE_PATH = convert_to_raw_string(EXCEL_FILE_PATH)
+         SELECTED_SHEET = data[key][1]
+         PROJECT_FILE_PATH = project_file_path
          PROJECT = win32.Dispatch("MSProject.Application")
          PROJECT.FileOpen(PROJECT_FILE_PATH)
-         
     
     workbook = load_workbook(EXCEL_FILE_PATH)
-    worksheet = workbook[SELECTED_SHEET[0]]
+    worksheet = workbook[SELECTED_SHEET]
     
     DATA_FRAME = pd.DataFrame(worksheet.values)
     DATA_FRAME = DATA_FRAME.reset_index()
@@ -229,9 +239,12 @@ def init(project_file_path):
     if last_value is not None:
         ID.append(last_value)
     
-    main()
+    if calling_function == "update":
+        update("SUCCESS")
+    else:
+        main()
 
-def update():
+def update(mpp_file_path):
     global DATA_FRAME
     global EXCEL_FILE_PATH
     global PROJECT
@@ -239,8 +252,8 @@ def update():
     global TASKS
     
 
-    if not DATA_FRAME or not EXCEL_FILE_PATH or not PROJECT or not ACTIVE_PROJECT:
-        init("C:/Users/npawelka/Desktop/PDCA/ETO.EEVACTUATOR.Entw.016.xlsm")
+    if  DATA_FRAME is None or EXCEL_FILE_PATH is None or PROJECT is None or ACTIVE_PROJECT is None:
+        init(mpp_file_path)
 
     Task_Name_index = find_TASK_NAME(DATA_FRAME, TASK_NAME)
     ID_index = find_ID(DATA_FRAME)
@@ -266,6 +279,7 @@ def update():
                 date = datetime.now().strftime("%d.%m.%Y")
             task = find_existing_task_by_name(current_name, TASKS)
             if task:
+                print(extract_budget(current_budget))
                 task.Start = date
                 task.OutlineLevel = current_depth
                 task.Cost = extract_budget(current_budget)
@@ -333,14 +347,14 @@ def main():
 
 if __name__ == "__main__":
     if DEMO is False:
-        if len(sys.argv) != 2:
+        if len(sys.argv) != 3:
             messagebox.showerror("Error","Fehler bei der Ermittlung des Commands")
             sys.exit()
         else:
-            if sys.argv[1] == "update":
-                update()
+            if sys.argv[2] == "update":
+                update(sys.argv[1])
             else:
                 mpp_file_path = sys.argv[1]
                 init(mpp_file_path)
     else:
-        init("C:/Users/npawelka/Desktop/Beispiel.mpp")
+        update(r"C:/Users/npawelka/Desktop/Beispiel.mpp")
