@@ -219,12 +219,9 @@ def main():
         
         
 if __name__ == "__main__":
-    if DEMO is False:
         if len(sys.argv) != 2:
             messagebox.showerror("Error","Fehler bei der Ermittlung des Commands")
             sys.exit()
         else:
             excel_path = sys.argv[1]
             init(excel_path)
-    else:    
-        init(r"C:\Users\npawelka\Desktop\PDCA\ETO.EEVACTUATOR.Entw.016.xlsm")
