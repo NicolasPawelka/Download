@@ -47,7 +47,8 @@ def add_task(task,position):
     WORKSHEET.Cells(position, id_index).Value = f"{prefix}.{task.OutlineNumber}"
     WORKSHEET.Cells(position,start_index).Value = task.Start
     WORKSHEET.Cells(position, ziel_index).ColumnWidth = len(str(task.Finish))
-    WORKSHEET.Cells(position, ziel_index).Value = task.Finish 
+    WORKSHEET.Cells(position, ziel_index).Value = task.Finish
+    WORKSHEET.Cells(position, ziel_index + 6).Value = task.Cost
     
     #Extrahieren der Formel zur Berechnung des Fortschritts
     formel = WORKSHEET.Cells(position - OFFSET, ziel_index-1).formula
@@ -212,6 +213,7 @@ def main():
             if position is not None:
                 task = get_task(id)
                 add_task(task,position)
+    messagebox.showinfo("Done", "Import der Daten erfolgreich!")
                 
             
         
@@ -224,5 +226,5 @@ if __name__ == "__main__":
         else:
             excel_path = sys.argv[1]
             init(excel_path)
-        
-    init(r"C:\Users\npawelka\Desktop\PDCA\ETO.EEVACTUATOR.Entw.016.xlsm")
+    else:    
+        init(r"C:\Users\npawelka\Desktop\PDCA\ETO.EEVACTUATOR.Entw.016.xlsm")

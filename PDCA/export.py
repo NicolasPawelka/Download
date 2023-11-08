@@ -14,7 +14,7 @@ import os
 import inspect
 import subprocess
 ############################
-DEMO = True
+DEMO = False
 TASK_NAME = "Arbeitsergebnis"
 START_DATE = None
 END_DATE = "Zieldatum"
